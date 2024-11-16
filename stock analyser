@@ -1,0 +1,99 @@
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+
+class StockMarketAnalysis:
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.stock_data = None
+
+    def fetch_data(self, period="1y"):
+        """Fetch stock data for the given ticker."""
+        print(f"Fetching data for {self.ticker}...")
+        self.stock_data = yf.Ticker(self.ticker).history(period=period)
+        if self.stock_data.empty:
+            print("No data found. Please check the ticker symbol.")
+        else:
+            print(f"Data fetched for {self.ticker} ({period}).")
+
+    def plot_closing_price(self):
+        """Plot the closing price of the stock."""
+        if self.stock_data is not None:
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.stock_data['Close'], label=f'{self.ticker} Close Price')
+            plt.title(f"{self.ticker} Closing Prices")
+            plt.xlabel("Date")
+            plt.ylabel("Price")
+            plt.legend()
+            plt.grid()
+            plt.show()
+        else:
+            print("No data available to plot. Fetch data first.")
+
+    def calculate_moving_average(self, window=50):
+        """Calculate and plot the moving average."""
+        if self.stock_data is not None:
+            self.stock_data[f'{window}D_MA'] = self.stock_data['Close'].rolling(window=window).mean()
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.stock_data['Close'], label=f'{self.ticker} Close Price', alpha=0.5)
+            plt.plot(self.stock_data[f'{window}D_MA'], label=f'{window}-Day MA', color='orange')
+            plt.title(f"{self.ticker} Moving Average ({window}-Day)")
+            plt.xlabel("Date")
+            plt.ylabel("Price")
+            plt.legend()
+            plt.grid()
+            plt.show()
+        else:
+            print("No data available for moving average calculation. Fetch data first.")
+
+    def calculate_daily_returns(self):
+        """Calculate daily percentage returns."""
+        if self.stock_data is not None:
+            self.stock_data['Daily_Return'] = self.stock_data['Close'].pct_change() * 100
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.stock_data['Daily_Return'], label=f'{self.ticker} Daily Returns', color='green', alpha=0.7)
+            plt.axhline(0, color='red', linestyle='--', linewidth=1)
+            plt.title(f"{self.ticker} Daily Returns")
+            plt.xlabel("Date")
+            plt.ylabel("Daily Return (%)")
+            plt.legend()
+            plt.grid()
+            plt.show()
+        else:
+            print("No data available to calculate daily returns. Fetch data first.")
+
+# Main program
+def main():
+    print("--- Stock Market Analysis Program ---")
+    ticker = input("Enter the stock ticker symbol (e.g., AAPL, TSLA): ").upper()
+    stock_analysis = StockMarketAnalysis(ticker)
+
+    while True:
+        print("\nOptions:")
+        print("1. Fetch Stock Data")
+        print("2. Plot Closing Prices")
+        print("3. Plot Moving Average")
+        print("4. Plot Daily Returns")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == "1":
+            period = input("Enter data period (e.g., 1mo, 6mo, 1y, 5y): ")
+            stock_analysis.fetch_data(period)
+        elif choice == "2":
+            stock_analysis.plot_closing_price()
+        elif choice == "3":
+            window = int(input("Enter moving average window (e.g., 50, 100): "))
+            stock_analysis.calculate_moving_average(window)
+        elif choice == "4":
+            stock_analysis.calculate_daily_returns()
+        elif choice == "5":
+            print("Exiting Stock Market Analysis Program. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+# Run the program
+if __name__ == "__main__":
+    main()
